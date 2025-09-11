@@ -42,6 +42,7 @@ urlpatterns = [
     path('api/profile/', include('Profile.urls')),
     path('api/product/', include('Product.urls')),
     path('api/cart/', include('Cart.urls')),
+    path('api/order/', include('Order.urls')),
 
     #DRF Yasg  documentation url
      path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
