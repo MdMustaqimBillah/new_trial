@@ -39,6 +39,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     #local apps url
     path('api/accounts/',include('Account.urls')),
+    path('api/profile/', include('Profile.urls')),
 
     #DRF Yasg  documentation url
      path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),

@@ -15,12 +15,13 @@ from .models import User, EmailVerification,PasswordReset
 from .serializers import (
     UserSerializer,
     RegisterResponseSerializer,
-    PasswordResetRequestSerializer,
-    PasswordResetConfirmSerializer,
+    PasswordChangeSerializer,
     LoginSerializer,
     LoginResponseSerializer
 )
 import secrets
+import uuid
+
 
 # Create your views here.
 
@@ -91,56 +92,16 @@ class VerifyEmailView(APIView):
 
 
 
-class PasswordResetRequestView(APIView):
-    """
-    Step 1: User submits email to request a reset link or code.
-    """
+
+class PasswordChangeView(APIView):
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request):
-        serializer = PasswordResetRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            user = User.objects.get(email=email)
-
-            # Create or replace existing reset token
-            reset_obj, created = PasswordReset.objects.update_or_create(
-                user=user,
-                defaults={
-                    'token': uuid.uuid4(),
-                }
-            )
-
-            # Send email (you can send token OR verification_code)
-            reset_link = f"http://127.0.0.1:8000/api/accounts/reset-password-confirm/{reset_obj.token}/"
-            message = (
-                f"Your password reset code is: {reset_obj.verification_code}\n\n"
-                f"Or click the link: {reset_link}"
-            )
-            send_mail(
-                subject="Password Reset Request",
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
-
-            return Response(
-                {"detail": "Password reset instructions sent to your email."},
-                status=status.HTTP_200_OK
-            )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PasswordResetConfirmView(APIView):
-    """
-    Step 2: User submits token (or code) + new password to reset.
-    """
-    def post(self, request):
-        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer = PasswordChangeSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             user = serializer.save()
             return Response(
-                {"detail": "Password has been reset successfully."},
+                {"detail": "Password has been changed successfully."},
                 status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -171,17 +132,28 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+    permission_classes = [AllowAny]
     
     def post(self, request):
-        refresh_token = request.data.get("refresh")
-        print( f"refresh_token : {refresh_token}")
+        refresh_token = request.data.get("refresh") or request.POST.get("refresh")
+        print(f"Received refresh_token: {refresh_token}")
+        print(f"Token type: {type(refresh_token)}")
+        print(f"Token length: {len(refresh_token) if refresh_token else 'None'}")
 
         if not refresh_token:
             return Response({"error": "Refresh token required"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Clean the token (remove any whitespace/newlines)
+        clean_token = refresh_token.strip().replace('\n', '').replace('\r', '').replace(' ', '')
+        print(f"Cleaned token: {clean_token}")
+
         try:
-            token = RefreshToken(refresh_token)
-            token.blacklist()  # blacklist the token
+            token = RefreshToken(clean_token)
+            token.blacklist()
             return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
-        except TokenError:
-            return Response({"error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
+        except TokenError as e:
+            print(f"TokenError details: {e}")
+            return Response({
+                "error": f"Invalid refresh token: {str(e)}",
+                "received_token_preview": clean_token[:50] + "..." if len(clean_token) > 50 else clean_token
+            }, status=status.HTTP_400_BAD_REQUEST)

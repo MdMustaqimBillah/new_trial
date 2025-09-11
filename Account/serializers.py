@@ -35,43 +35,31 @@ class RegisterResponseSerializer(serializers.Serializer):
 
 
 # --- 🔑 Password Reset Serializers ---
-class PasswordResetRequestSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-
-    def validate_email(self, value):
-        try:
-            user = User.objects.get(email=value)
-        except User.DoesNotExist:
-            raise ValidationError("User with this email does not exist")
-        return value
 
 
-class PasswordResetConfirmSerializer(serializers.Serializer):
-    token = serializers.CharField()
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
     password = serializers.CharField(min_length=8, write_only=True)
     password2 = serializers.CharField(write_only=True)
 
     def validate(self, data):
+        # Get the user from the request context
+        user = self.context['request'].user
+        
+        # Check if old password is correct (use check_password for hashed passwords)
+        if not user.check_password(data['old_password']):
+            raise ValidationError("Current password is incorrect")
+            
         if data['password'] != data['password2']:
-            raise ValidationError("Passwords do not match")
+            raise ValidationError("New passwords do not match")
+            
         return data
 
     def save(self, **kwargs):
-        token = self.validated_data['token']
+        user = self.context['request'].user
         password = self.validated_data['password']
-
-        try:
-            reset_obj = PasswordReset.objects.get(token=token)
-        except PasswordReset.DoesNotExist:
-            raise ValidationError("Invalid or expired token")
-
-        user = reset_obj.user
         user.set_password(password)
         user.save()
-
-        # Once used, delete token so it cannot be reused
-        reset_obj.delete()
-
         return user
 
 
