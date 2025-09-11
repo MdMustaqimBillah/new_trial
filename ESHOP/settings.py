@@ -30,6 +30,7 @@ INSTALLED_APPS = [
 
     #local apps
     'Account.apps.AccountConfig',
+    'Product.apps.ProductConfig',
     'Profile.apps.ProfileConfig',
 
 
