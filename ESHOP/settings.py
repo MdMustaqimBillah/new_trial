@@ -37,13 +37,15 @@ INSTALLED_APPS = [
     'Profile.apps.ProfileConfig',
     'Cart.apps.CartConfig',
     'Order.apps.OrderConfig',
+    'Payment.apps.PaymentConfig',
 
 
     #third-party apps
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'drf_yasg'
+    'drf_yasg',
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -54,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+     "corsheaders.middleware.CorsMiddleware", # CORS HEADER MIDDLEWARE
 ]
 
 ROOT_URLCONF = 'ESHOP.urls'
@@ -123,6 +126,11 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
 
 
 
