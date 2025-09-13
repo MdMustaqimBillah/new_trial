@@ -136,9 +136,6 @@ class LogoutView(APIView):
     
     def post(self, request):
         refresh_token = request.data.get("refresh") or request.POST.get("refresh")
-        print(f"Received refresh_token: {refresh_token}")
-        print(f"Token type: {type(refresh_token)}")
-        print(f"Token length: {len(refresh_token) if refresh_token else 'None'}")
 
         if not refresh_token:
             return Response({"error": "Refresh token required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -148,9 +145,10 @@ class LogoutView(APIView):
         print(f"Cleaned token: {clean_token}")
 
         try:
-            token = RefreshToken(clean_token)
+            # token = RefreshToken(clean_token)
+            token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+            return Response({"message": "Logout successful"}, status=status.HTTP_204_NO_CONTENT)
         except TokenError as e:
             print(f"TokenError details: {e}")
             return Response({

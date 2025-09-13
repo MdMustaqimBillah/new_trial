@@ -1,1 +1,65 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.manifest
+*.spec
 
+# ---- Virtualenv ----
+env/
+venv/
+ENV/
+.env/
+.venv/
+
+# ---- Django ----
+*.log
+*.pot
+*.pyc
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+local_settings.py
+
+# ---- Migrations (optional) ----
+# Uncomment if you don’t want to track initial migrations
+# **/migrations/
+# !**/migrations/__init__.py
+
+# ---- VS Code / IDE ----
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+
+# ---- Environment & secrets ----
+.env
+*.env
+.env.local
+.env.*.local
+
+# ---- Celery / Redis ----
+celerybeat-schedule
+celerybeat.pid
+
+# ---- Coverage / testing ----
+.coverage
+.tox/
+.nox/
+htmlcov/
+*.cover
+*.py,cover
+.cache
+.pytest_cache/
+.coverage.*
+test-results/
